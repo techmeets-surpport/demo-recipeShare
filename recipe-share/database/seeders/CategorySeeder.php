@@ -3,18 +3,16 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Category;
 
 class CategorySeeder extends Seeder
 {
     public function run()
     {
-        DB::table('categories')->insert([
-            ['name' => '和食', 'created_at' => now()],
-            ['name' => '洋食', 'created_at' => now()],
-            ['name' => '中華', 'created_at' => now()],
-            ['name' => 'イタリアン', 'created_at' => now()],
-            ['name' => 'その他', 'created_at' => now()],
-        ]);
+        $categories = ['和食', '洋食', '中華', 'イタリアン', 'その他'];
+
+        foreach ($categories as $name) {
+            Category::firstOrCreate(['name' => $name]);
+        }
     }
 }
