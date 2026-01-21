@@ -215,8 +215,13 @@ class DemoDataSeeder extends Seeder
                 ->where('user_id', $recipeData['user']->id)
                 ->first();
 
+            // 既存レシピがあるが材料がない場合は削除して再作成
             if ($existingRecipe) {
-                continue;
+                if ($existingRecipe->ingredients()->count() === 0) {
+                    $existingRecipe->forceDelete();
+                } else {
+                    continue;
+                }
             }
 
             // レシピ作成
@@ -238,8 +243,8 @@ class DemoDataSeeder extends Seeder
                 Ingredient::create([
                     'recipe_id' => $recipe->id,
                     'name' => $ingredient['name'],
-                    'amount' => $ingredient['amount'],
-                    'order' => $order + 1,
+                    'quantity' => $ingredient['amount'],
+                    'display_order' => $order + 1,
                 ]);
             }
 
