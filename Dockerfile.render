@@ -9,10 +9,15 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libpq-dev \
     zip \
-    unzip
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-# PHP拡張インストール
-RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+# PHP拡張インストール（個別にインストールして確実に）
+RUN docker-php-ext-install pdo pdo_pgsql pgsql
+RUN docker-php-ext-install mbstring exif pcntl bcmath gd
+
+# インストール確認
+RUN php -m | grep -i pgsql
 
 # Apache mod_rewrite有効化
 RUN a2enmod rewrite
@@ -23,8 +28,16 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # アプリケーションコピー
 COPY ./recipe-share /var/www/html
 
+# 環境変数のデフォルト値
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV DB_CONNECTION=pgsql
+ENV LOG_CHANNEL=stderr
+ENV SESSION_DRIVER=cookie
+ENV CACHE_DRIVER=file
+
 # Apacheドキュメントルート設定
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
