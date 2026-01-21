@@ -1,0 +1,49 @@
+FROM php:8.2-apache
+
+# 必要なパッケージインストール
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libpq-dev \
+    zip \
+    unzip
+
+# PHP拡張インストール
+RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+
+# Apache mod_rewrite有効化
+RUN a2enmod rewrite
+
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# アプリケーションコピー
+COPY ./recipe-share /var/www/html
+
+# Apacheドキュメントルート設定
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# .htaccessを有効にする
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+WORKDIR /var/www/html
+
+# 依存関係インストール
+RUN composer install --no-dev --optimize-autoloader
+
+# ストレージディレクトリの権限設定
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# スタートスクリプトの権限設定
+RUN chmod +x /var/www/html/start.sh
+
+# ポート設定
+EXPOSE 80
+
+CMD ["/var/www/html/start.sh"]

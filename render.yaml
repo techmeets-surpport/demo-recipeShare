@@ -1,0 +1,43 @@
+databases:
+  - name: recipeshare-db
+    databaseName: recipe_share
+    user: recipe_user
+    plan: free
+
+services:
+  - type: web
+    name: recipeshare
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    envVars:
+      - key: APP_NAME
+        value: RecipeShare
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        fromService:
+          type: web
+          name: recipeshare
+          property: url
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: recipeshare-db
+          property: connectionString
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: APP_KEY
+        generateValue: true
+    buildCommand: |
+      cd recipe-share && composer install --no-dev --optimize-autoloader
+    startCommand: |
+      cd recipe-share && php artisan migrate --force && php artisan config:cache && php artisan route:cache && php-fpm

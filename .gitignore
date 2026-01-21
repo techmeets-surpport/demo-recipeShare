@@ -1,0 +1,39 @@
+# Claude settings
+.claude/
+
+# Composer binary
+composer.phar
+
+# Dependencies
+recipe-share/vendor/
+recipe-share/node_modules/
+
+# Environment files
+recipe-share/.env
+recipe-share/.env.backup
+recipe-share/.env.production
+
+# Laravel generated files
+recipe-share/public/build
+recipe-share/public/hot
+recipe-share/public/storage
+recipe-share/storage/*.key
+
+# IDE
+.idea/
+.vscode/
+.fleet/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+recipe-share/storage/logs/*.log
+
+# Cache
+recipe-share/.phpunit.result.cache
+recipe-share/bootstrap/cache/*.php
+
+# Docker volumes
+db-data/
